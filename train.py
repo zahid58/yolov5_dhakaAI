@@ -356,7 +356,7 @@ def train(hyp, opt, device, tb_writer=None):
                         if opt.SaveBestInDrive != 'NOT_SET':
                             torch.save(ckpt, opt.SaveBestInDrive)
                     except:
-                        print("! could not save best to",opt.SaveBestInDrive)
+                        print("!could not save best model to",opt.SaveBestInDrive)
                 del ckpt
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training

@@ -1,0 +1,28 @@
+# dhaka AI traffic dataset configuration
+
+download: ''
+names:
+- truck
+- pickup
+- car
+- suv
+- three wheelers (CNG)
+- bus
+- van
+- ambulance
+- rickshaw
+- minivan
+- motorbike
+- bicycle
+- army vehicle
+- human hauler
+- taxi
+- wheelbarrow
+- auto rickshaw
+- minibus
+- scooter
+- policecar
+- garbagevan
+nc: 21
+train: ../dhakaAI/images/train/
+val: ../dhakaAI/images/valid/

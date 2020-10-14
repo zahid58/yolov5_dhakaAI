@@ -352,6 +352,11 @@ def train(hyp, opt, device, tb_writer=None):
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     torch.save(ckpt, best)
+                    try:
+                        if opt.SaveBestInDrive != 'NOT_SET':
+                            torch.save(ckpt, opt.SaveBestInDrive)
+                    except:
+                        print("! could not save best to",opt.SaveBestInDrive)
                 del ckpt
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
@@ -381,6 +386,7 @@ if __name__ == '__main__':
     parser.add_argument('--weights', type=str, default='yolov5s.pt', help='initial weights path')
     parser.add_argument('--cfg', type=str, default='', help='model.yaml path')
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml path')
+    parser.add_argument('--SaveBestInDrive', type=str, default='NOT_SET', help='saves the best model in given google drive path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.yaml', help='hyperparameters path')
     parser.add_argument('--epochs', type=int, default=300)
     parser.add_argument('--batch-size', type=int, default=16, help='total batch size for all GPUs')

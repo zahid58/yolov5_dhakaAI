@@ -1,0 +1,2 @@
+oct 15 - yolov5 - 5x - bs 4 - sgd - train 640 - test 416,640 - valid 55%,35% - test 8% - epoch 150
+

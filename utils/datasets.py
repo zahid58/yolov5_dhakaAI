@@ -967,7 +967,7 @@ class AlbumenAugment(object):
     """Performs BBox Independent Augmentations from Albumentations library"""
     def __call__(self, img):        
         transform = A.Compose([
-                                A.GaussianNoise(p=0.4),
+                                A.GaussNoise(p=0.4),
                                 A.GaussianBlur(blur_limit=(3,7), p=0.3),
                                 A.MotionBlur(blur_limit=(3,7), p=0.4),
                                 A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.6),

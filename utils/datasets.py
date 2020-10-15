@@ -6,7 +6,7 @@ import shutil
 import time
 from pathlib import Path
 from threading import Thread
-
+import albumentations as A
 import cv2
 import numpy as np
 import torch
@@ -128,6 +128,7 @@ class LoadImages:  # for inference
         self.nf = ni + nv  # number of files
         self.video_flag = [False] * ni + [True] * nv
         self.mode = 'images'
+        self.albumen_preprocessing = AlbumenPreprocessing()
         if any(videos):
             self.new_video(videos[0])  # new video
         else:
@@ -167,6 +168,9 @@ class LoadImages:  # for inference
             img0 = cv2.imread(path)  # BGR
             assert img0 is not None, 'Image Not Found ' + path
             print('image %g/%g %s: ' % (self.count, self.nf, path), end='')
+
+        # albumen preprocessing
+        img = self.albumen_preprocessing(img)    
 
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size)[0]
@@ -361,6 +365,10 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.stride = stride
+
+        # albumen augs
+        self.albumen_preprocessing = AlbumenPreprocessing()
+        self.albumen_augment = AlbumenAugment()
 
         # Define labels
         sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
@@ -584,6 +592,10 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 img = np.fliplr(img)
                 if nL:
                     labels[:, 1] = 1 - labels[:, 1]
+
+        img = self.albumen_preprocessing(img)
+        if self.augment:
+            img = self.albumen_augment(img)            
 
         labels_out = torch.zeros((nL, 6))
         if nL:
@@ -940,3 +952,29 @@ def create_folder(path='./new'):
     if os.path.exists(path):
         shutil.rmtree(path)  # delete output folder
     os.makedirs(path)  # make new output folder
+
+
+class AlbumenPreprocessing(object):
+    """Performs BBox Independent Augmentations from Albumentations library"""
+    def __call__(self, img):        
+        transform = A.Compose([
+                                A.CLAHE(p=1)
+                            ])
+        img = transform(image=img)['image']                        
+        return img
+
+class AlbumenAugment(object):
+    """Performs BBox Independent Augmentations from Albumentations library"""
+    def __call__(self, img):        
+        transform = A.Compose([
+                                A.GaussianNoise(p=0.4),
+                                A.GaussianBlur(blur_limit=5, p=0.3),
+                                A.MotionBlur(blur_limit=5, p=0.4),
+                                A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.6),
+                                A.RandomFog(p=0.3),
+                                A.RGBShift(p=0.3), 
+                                A.RandomSnow(p=0.2),
+                                A.JpegCompression(quality_lower=50, p=0.4)
+                            ])
+        img = transform(image=img)['image']                       
+        return img

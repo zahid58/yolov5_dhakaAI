@@ -128,7 +128,7 @@ class LoadImages:  # for inference
         self.nf = ni + nv  # number of files
         self.video_flag = [False] * ni + [True] * nv
         self.mode = 'images'
-        self.albumen_preprocessing = AlbumenPreprocessing()
+
         if any(videos):
             self.new_video(videos[0])  # new video
         else:
@@ -167,10 +167,7 @@ class LoadImages:  # for inference
             self.count += 1
             img0 = cv2.imread(path)  # BGR
             assert img0 is not None, 'Image Not Found ' + path
-            print('image %g/%g %s: ' % (self.count, self.nf, path), end='')
-
-        # albumen preprocessing
-        img = self.albumen_preprocessing(img)    
+            print('image %g/%g %s: ' % (self.count, self.nf, path), end='') 
 
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size)[0]
@@ -367,7 +364,6 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.stride = stride
 
         # albumen augs
-        self.albumen_preprocessing = AlbumenPreprocessing()
         self.albumen_augment = AlbumenAugment()
 
         # Define labels
@@ -593,7 +589,6 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 if nL:
                     labels[:, 1] = 1 - labels[:, 1]
 
-        img = self.albumen_preprocessing(img)
         if self.augment:
             img = self.albumen_augment(img)            
 
@@ -954,26 +949,16 @@ def create_folder(path='./new'):
     os.makedirs(path)  # make new output folder
 
 
-class AlbumenPreprocessing(object):
-    """Performs BBox Independent Augmentations from Albumentations library"""
-    def __call__(self, img):        
-        transform = A.Compose([
-                                A.CLAHE(p=1)
-                            ])
-        img = transform(image=img)['image']                        
-        return img
-
 class AlbumenAugment(object):
     """Performs BBox Independent Augmentations from Albumentations library"""
     def __call__(self, img):        
         transform = A.Compose([
-                                A.GaussNoise(p=0.4),
+                                A.GaussNoise(p=0.5),
                                 A.GaussianBlur(blur_limit=(3,7), p=0.3),
                                 A.MotionBlur(blur_limit=(3,7), p=0.4),
-                                A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.6),
+                                A.RandomBrightnessContrast(brightness_limit=0.5, contrast_limit=0.5, p=0.6),
                                 A.RandomFog(p=0.3),
                                 A.RGBShift(p=0.3), 
-                                A.RandomSnow(p=0.2),
                                 A.JpegCompression(quality_lower=50, p=0.4)
                             ])
         img = transform(image=img)['image']                       

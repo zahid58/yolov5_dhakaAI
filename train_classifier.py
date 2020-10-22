@@ -10,6 +10,7 @@ import time
 import os
 import copy
 import argparse
+import albumentations as A
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,device,dataset_sizes):
     since = time.time()
@@ -95,6 +96,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     return model
 
 
+def albumen_augmentations():
+    transforms = A.Compose([
+                        A.CLAHE(p=0.5),
+                        A.GaussNoise(p=0.5),
+                        A.GaussianBlur(blur_limit=(3,7), p=0.4),
+                        A.MotionBlur(blur_limit=(3,7), p=0.4),
+                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.7),
+                        A.RandomFog(p=0.3),
+                        A.RGBShift(p=0.3), 
+                        A.JpegCompression(quality_lower=50, p=0.5)
+                      ])
+    return  lambda  img:transforms(image=np.array(img))['image']
+
+
 def train(opt):
 
     # Data augmentation and normalization for training
@@ -102,7 +117,9 @@ def train(opt):
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(degrees=(-50, 50)),
+            albumen_augmentations(),   ################  comment this line if albumentation causes error   #################
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),

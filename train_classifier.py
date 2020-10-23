@@ -26,8 +26,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
         print('> loading resumed weights from',opt.resume)
         checkpoint = torch.load(opt.resume)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        #for param_group in optimizer.param_groups:
-            #param_group['lr'] = 1e-4
+        for param_group in optimizer.param_groups:
+            param_group['lr'] = 1e-4
         start_epoch = checkpoint['epoch']
         model.load_state_dict(checkpoint['model_state_dict'])
         
@@ -107,6 +107,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     return model
 
 
+def normalize():
+    return lambda img: np.array(img/255.0, dtype = np.float32)
+
 def albumen_augmentations():
     transforms = A.Compose([
                         A.CLAHE(p=0.5),
@@ -120,8 +123,6 @@ def albumen_augmentations():
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
 
-def normalize():
-    return lambda img : img/255.0
 
 def load_model(type='efficientnet', num_classes = 21):
  
@@ -157,7 +158,7 @@ def train(opt):
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(degrees=(-50, 50)),
-            albumen_augmentations(), 
+            albumen_augmentations(),
             normalize(),
             transforms.ToTensor(),
         ]),
@@ -199,11 +200,10 @@ def train(opt):
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    #exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
     exp_lr_scheduler = None
     
     # train model
-    
     model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)
 
     
@@ -229,4 +229,5 @@ if __name__ == '__main__':
 
     # Train
     train(opt)
+
 

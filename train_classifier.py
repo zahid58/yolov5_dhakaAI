@@ -112,6 +112,31 @@ def albumen_augmentations():
     return  lambda  img:transforms(image=np.array(img))['image']
 
 
+def load_model(type='efficientnet', num_classes = 21):
+    
+    if type=='resnet34':
+        model = models.resnet34(pretraind = True)
+    elif type=='resnet18':
+        model = models.resnet18(pretraind = True)
+    elif type=='resnet50':
+        model = models.resnet50(pretrain = True)       
+    elif type=='resnet100':
+        model = models.resnet100(pretraind = True)
+    elif type=='efficientnet':
+        model = EfficientNet.from_pretrained('efficientnet-b3')
+    else:
+        raise Exception("Sorry, CNN_TYPE not recognized!")
+        
+    # change classifier
+    if type == 'efficientnet':
+        num_ftrs = model._fc.in_features
+        model._fc = nn.Linear(num_ftrs, num_classes)
+    else:
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, num_classes)
+    return model
+        
+        
 def train(opt):
 
     # Data augmentation and normalization for training
@@ -155,28 +180,8 @@ def train(opt):
 
     # load model
 
-    model_ft = None 
-    if opt.CNN_type=='resnet34':
-        model_ft = models.resnet34(pretraind = True)
-    elif opt.CNN_type=='resnet18':
-        model_ft = models.resnet18(pretraind = True)
-    elif opt.CNN_type=='resnet50':
-        model_ft = models.resnet50(pretrain = True)       
-    elif opt.CNN_type=='resnet100':
-        model_ft = models.resnet100(pretraind = True)
-    elif opt.CNN_type=='efficientnet':
-        model_ft = EfficientNet.from_pretrained('efficientnet-b3')
-    else:
-        raise Exception("Sorry, CNN_TYPE not recognized!")
-   
-    # change classifier
-    
-    if opt.CNN_type == 'efficientnet':
-        num_ftrs = model_ft._fc.in_features
-        model_ft._fc = nn.Linear(num_ftrs, len(class_names))
-    else:
-        num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, len(class_names))
+    model_ft = None
+    model_ft = load_model(type = opt.CNN_type, num_classes = len(class_names))
 
     # compile model
     

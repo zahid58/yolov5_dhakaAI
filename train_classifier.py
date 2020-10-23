@@ -11,12 +11,14 @@ import os
 import copy
 import argparse
 import albumentations as A
+from efficientnet_pytorch import EfficientNet
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,device,dataset_sizes):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     start_epoch = 0
+    
     if opt.resume != 'False':
         checkpoint = torch.load(opt.resume)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -155,43 +157,55 @@ def train(opt):
 
     model_ft = None 
     if opt.CNN_type=='resnet34':
-        models.resnet34(pretraind = True)
+        model_ft = models.resnet34(pretraind = True)
     elif opt.CNN_type=='resnet18':
-        models.resnet18(pretraind = True)
+        model_ft = models.resnet18(pretraind = True)
     elif opt.CNN_type=='resnet50':
-        models.resnet50(pretrain = True)       
+        model_ft = models.resnet50(pretrain = True)       
     elif opt.CNN_type=='resnet100':
-        models.resnet100(pretraind = True)
-    num_ftrs = model_ft.fc.in_features
-    model_ft.fc = nn.Linear(num_ftrs, len(class_names))
+        model_ft = models.resnet100(pretraind = True)
+    elif opt.CNN_type=='efficientnet':
+        model_ft = EfficientNet.from_pretrained('efficientnet-b3')
+    else:
+        raise Exception("Sorry, CNN_TYPE not recognized!")
+   
+    # change classifier
+    
+    if opt.CNN_type == 'efficientnet':
+        num_ftrs = model_ft._fc.in_features
+        model_ft._fc = nn.Linear(num_ftrs, len(class_names))
+    else:
+        num_ftrs = model_ft.fc.in_features
+        model_ft.fc = nn.Linear(num_ftrs, len(class_names))
 
+    # compile model
+    
+    for param in model.parameters():
+        param.requires_grad = True
+    
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-
-    #optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    #exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)
-    exp_lr_scheduler = None
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
+    
     # train model
-    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epoch,dataloaders,device,dataset_sizes)
-
-    # save 
-
-
-
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    
+    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)
 
     
+    
+
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, help='data directoris')
     parser.add_argument('--batch_size', type=int, default=4, help='batch size')
-    parser.add_argument('--epoch', type=int, default=100, help='number of epochs')
+    parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
     parser.add_argument('--resume', type=str, default='False', help='Resumed weight paths')
     parser.add_argument('--SaveBestInDrive', type=str, default='NOT_SET', help='saves the best model in given google drive path')
     parser.add_argument('--CNN_type', type=str, help='cnn type to be trained')
     opt = parser.parse_args()
+    
     checkpoint_save_dir = 'checkpoints'
     if not os.path.exists(checkpoint_save_dir):
         os.mkdir(checkpoint_save_dir)

@@ -17,11 +17,15 @@ from utils.general import (
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
-def detect(save_img=False,classify=True):
+def detect(save_img=False):
     out, source, weights, view_img, save_txt, imgsz = \
         opt.output, opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     webcam = source.isnumeric() or source.startswith(('rtsp://', 'rtmp://', 'http://')) or source.endswith('.txt')
 
+    if opt.classifier_checkpoint_path == 'NOT_SET':
+        classify = False
+    else:
+        classify = True
     # Initialize
     set_logging()
     device = select_device(opt.device)
@@ -146,6 +150,7 @@ def detect(save_img=False,classify=True):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default='yolov5s.pt', help='model.pt path(s)')
+    parser.add_argument('--classifier_checkpoint_path', type=str, default = 'NOT_SET', help='pass the cnn 2nd stage classifier here!') 
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder, 0 for webcam
     parser.add_argument('--output', type=str, default='inference/output', help='output folder')  # output folder
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')

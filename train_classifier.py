@@ -161,23 +161,14 @@ def train(opt):
     
     data_dir = opt.data_dir
     image_datasets = {x: ImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    """
-    num_data = len(image_data)
-    indices = list(range(image_train))
-    np.random.seed(42)   # shuffle using seed, as we want same val data every time 
-    np.random.shuffle(indices)
-    split = int(np.floor(valid_size * num_train))
-    train_idx, valid_idx = indices[split:], indices[:split]"""
+    traffics = {'truck':0, 'pickup':1, 'car':2, 'suv':3, 'three wheelers (CNG)':4, 'bus':5, 'van':6, 'ambulance':7, 'rickshaw':8, 'minivan':9, 'motorbike':10, 'bicycle':11, 'army vehicle':12, 'human hauler':13, 'taxi':14, 'wheelbarrow':15, 'auto rickshaw':16, 'minibus':17, 'scooter':18, 'policecar':19, 'garbagevan':20}
+    image_datasets['train'].class_to_idx = traffics
+    image_datasets['val'].class_to_idx = traffics
     
-    
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,shuffle=True, num_workers=4)
-                for x in ['train', 'val']}
+    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,shuffle=True, num_workers=4) for x in ['train', 'val']}    
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
-    
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
 
     # load model
 

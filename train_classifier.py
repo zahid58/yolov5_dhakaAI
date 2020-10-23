@@ -13,6 +13,7 @@ import copy
 import argparse
 import albumentations as A
 from efficientnet_pytorch import EfficientNet
+from tqdm import tqdm
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,device,dataset_sizes):
 

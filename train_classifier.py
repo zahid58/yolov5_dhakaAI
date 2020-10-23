@@ -78,14 +78,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
                 'loss': loss,
             }
             if phase=='train':
-                torch.save(checkpoint,os.path.join(checkpoint_save_dir,'last.pth'))
+                torch.save(checkpoint,os.path.join(checkpoint_save_dir,'last.pt'))
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
                 if opt.SaveBestInDrive !='NOT_SET':
-                   torch.save(best_model_wts,os.path.join(opt.SaveBestInDrive,'best.pth'))
-                   torch.save(checkpoint,os.path.join(checkpoint_save_dir,'best.pth'))
+                   torch.save(best_model_wts, opt.SaveBestInDrive)
+                   torch.save(checkpoint, os.path.join(checkpoint_save_dir,'best.pt'))
         print()
 
     time_elapsed = time.time() - since

@@ -92,7 +92,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
                 torch.save(checkpoint, os.path.join(checkpoint_save_dir,'best.pt'))
 
                 if opt.SaveBestInDrive !='NOT_SET':
-                   torch.save(best_model_wts, opt.SaveBestInDrive)
+                   torch.save(checkpoint, opt.SaveBestInDrive)
                    
         print()
 
@@ -101,9 +101,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
         time_elapsed // 60, time_elapsed % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
     
-    # load best model weights
-    model.load_state_dict(best_model_wts)
-    return model
+    return
 
 
 def normalize():
@@ -206,7 +204,7 @@ def train(opt):
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.6)
     
     # train model
-    model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)
+    train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)
 
     
     

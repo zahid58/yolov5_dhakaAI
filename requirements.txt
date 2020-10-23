@@ -13,8 +13,7 @@ torchvision>=0.7.0
 tqdm>=4.41.0
 git+https://github.com/albumentations-team/albumentations
 PyYaml==5.3
-efficientnet_pytorch
-tqdm
+efficientnet_pytorch==0.7.0
 
 # coco ----------------------------------------
 # pycocotools>=2.0

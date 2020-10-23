@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-
+from train_classifier import load_model
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
@@ -17,7 +17,7 @@ from utils.general import (
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
-def detect(save_img=False):
+def detect(save_img=False,classify=True):
     out, source, weights, view_img, save_txt, imgsz = \
         opt.output, opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     webcam = source.isnumeric() or source.startswith(('rtsp://', 'rtmp://', 'http://')) or source.endswith('.txt')
@@ -37,10 +37,10 @@ def detect(save_img=False):
         model.half()  # to FP16
 
     # Second-stage classifier
-    classify = False
     if classify:
-        modelc = load_classifier(name='resnet101', n=2)  # initialize
-        modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device)['model'])  # load weights
+        modelc = load_model(type='efficientnet', num_classes=21) #modelc = load_classifier(name='resnet101', n=2)  # initialize
+        checkpoint_c = torch.load(opt.classifier_checkpoint_path)  #modelc.load_state_dict(torch.load('weights/resnet101.pt', map_location=device)['model'])  # load weights
+        modelc.load_state_dict(checkpoint_c['model_state_dict'])  # load weights
         modelc.to(device).eval()
 
     # Set Dataloader

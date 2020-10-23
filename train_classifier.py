@@ -106,9 +106,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     model.load_state_dict(best_model_wts)
     return model
 
+def f_normalize(img):
+    img = np.array(img, dtype=np.float32)
+    return img/255.0
 
 def normalize():
-    return lambda img: np.array(img/255.0, dtype = np.float32)
+    return lambda img: f_normalize(img)
 
 def albumen_augmentations():
     transforms = A.Compose([

@@ -105,27 +105,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     return
 
 
-def normalize():
-    def f_normalize(img):
-        if not isinstance(img,np.ndarray):
-            img = np.array(img, dtype=np.float32)
-        else:
-            if not img.dtype==np.float32:
-                img = np.array(img, dtype=np.float32)
-        return img/255.0
-    return lambda img: f_normalize(img)
-
-
 def albumen_augmentations():
     transforms = A.Compose([
-                        A.CLAHE(p=0.3),
-                        A.GaussNoise(p=0.3),
-                        A.GaussianBlur(blur_limit=(3,7), p=0.3),
-                        A.MotionBlur(blur_limit=(3,7), p=0.3),
-                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.5),
+                        A.CLAHE(p=0.4),
+                        A.GaussNoise(p=0.5),
+                        A.GaussianBlur(blur_limit=(3,7), p=0.4),
+                        A.MotionBlur(blur_limit=(3,7), p=0.4),
+                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.6),
                         A.RandomFog(p=0.3),
                         A.RGBShift(p=0.3), 
-                        A.JpegCompression(quality_lower=50, p=0.3)
+                        A.JpegCompression(quality_lower=50, p=0.4)
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
 
@@ -141,14 +130,14 @@ def load_model(type='efficientnet', num_classes = 21):
     elif type=='resnet100':
         model = models.resnet100(pretraind = True)
     elif type=='efficientnet':
-        model = EfficientNet.from_pretrained('efficientnet-b1')
+        model = EfficientNet.from_pretrained('efficientnet-b3')
     else:
         raise Exception("! Sorry, CNN_TYPE not recognized !")
         
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        model._fc = nn.Linear(num_ftrs, num_classes)
+        model._fc = nn.Sequential(nn.Linear(num_ftrs, 256), nn.ReLU(), nn.Linear(256, num_classes))
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
@@ -166,14 +155,14 @@ def train(opt):
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.RandomRotation(degrees=(-50, 50)),
             albumen_augmentations(),
-            normalize(),
             transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
-            normalize(),
             transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
     }
     

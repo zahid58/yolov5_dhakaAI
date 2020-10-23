@@ -18,7 +18,6 @@ from tqdm import tqdm
 def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,device,dataset_sizes):
 
     since = time.time()
-    best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
     start_epoch = 0
     
@@ -26,8 +25,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
         print('> loading resumed weights from',opt.resume)
         checkpoint = torch.load(opt.resume)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 1e-4
+#         for param_group in optimizer.param_groups:
+#             param_group['lr'] = 1e-4
         start_epoch = checkpoint['epoch']
         model.load_state_dict(checkpoint['model_state_dict'])
         
@@ -106,12 +105,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     model.load_state_dict(best_model_wts)
     return model
 
-def f_normalize(img):
-    img = np.array(img, dtype=np.float32)
-    return img/255.0
 
 def normalize():
+    def f_normalize(img):
+        img = np.array(img, dtype=np.float32)
+        return img/255.0
     return lambda img: f_normalize(img)
+
 
 def albumen_augmentations():
     transforms = A.Compose([
@@ -202,9 +202,8 @@ def train(opt):
     
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=7, gamma=0.1)
-    exp_lr_scheduler = None
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.0001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.6)
     
     # train model
     model_ft = train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)

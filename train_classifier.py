@@ -203,7 +203,7 @@ if __name__ == '__main__':
     parser.add_argument('--CNN_type', type=str, help='cnn type to be trained')
     opt = parser.parse_args()
     
-    checkpoint_save_dir = 'checkpoints'
+    checkpoint_save_dir = 'classifier_checkpoints'
     if not os.path.exists(checkpoint_save_dir):
         os.mkdir(checkpoint_save_dir)
 

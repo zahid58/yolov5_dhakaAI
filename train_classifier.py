@@ -26,8 +26,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
         print('> loading resumed weights from',opt.resume)
         checkpoint = torch.load(opt.resume)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = 1e-4
+        #for param_group in optimizer.param_groups:
+            #param_group['lr'] = 1e-4
         start_epoch = checkpoint['epoch']
         model.load_state_dict(checkpoint['model_state_dict'])
         

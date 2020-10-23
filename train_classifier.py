@@ -209,7 +209,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, help='data directoris')
-    parser.add_argument('--batch_size', type=int, default=4, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=64, help='batch size')
     parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
     parser.add_argument('--resume', type=str, default='False', help='Resumed weight paths')
     parser.add_argument('--SaveBestInDrive', type=str, default='NOT_SET', help='saves the best model in given google drive path')

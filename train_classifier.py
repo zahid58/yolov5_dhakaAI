@@ -20,15 +20,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     since = time.time()
     best_acc = 0.0
     start_epoch = 0
-    
+
     if opt.resume != 'False':
         print('> loading resumed weights from',opt.resume)
         checkpoint = torch.load(opt.resume)
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-#         for param_group in optimizer.param_groups:
-#             param_group['lr'] = 1e-4
+        # for param_group in optimizer.param_groups:
+        #     param_group['lr'] = 1e-4
         start_epoch = checkpoint['epoch']
         model.load_state_dict(checkpoint['model_state_dict'])
+
         
     print('> starting training...')
     for epoch in range(start_epoch,num_epochs):
@@ -143,10 +144,15 @@ def load_model(type='efficientnet', num_classes = 21):
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        model._fc = nn.Linear(num_ftrs, num_classes)
+        model._fc = nn.Sequential(
+                        nn.Linear(num_ftrs, 256),
+                        nn.ReLU(),
+                        nn.Linear(256, num_classes)
+                        )
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
+
     return model
         
         
@@ -200,8 +206,8 @@ def train(opt):
     
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.0001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.6)
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=8, gamma=0.6)
     
     # train model
     train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)

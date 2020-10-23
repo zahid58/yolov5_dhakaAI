@@ -107,21 +107,25 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
 
 def normalize():
     def f_normalize(img):
-        img = np.array(img, dtype=np.float32)
+        if not isinstance(img,np.ndarray):
+            img = np.array(img, dtype=np.float32)
+        else:
+            if not img.dtype==np.float32:
+                img = np.array(img, dtype=np.float32)
         return img/255.0
     return lambda img: f_normalize(img)
 
 
 def albumen_augmentations():
     transforms = A.Compose([
-                        A.CLAHE(p=0.5),
-                        A.GaussNoise(p=0.5),
-                        A.GaussianBlur(blur_limit=(3,7), p=0.4),
-                        A.MotionBlur(blur_limit=(3,7), p=0.4),
-                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.7),
+                        A.CLAHE(p=0.3),
+                        A.GaussNoise(p=0.3),
+                        A.GaussianBlur(blur_limit=(3,7), p=0.3),
+                        A.MotionBlur(blur_limit=(3,7), p=0.3),
+                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.5),
                         A.RandomFog(p=0.3),
                         A.RGBShift(p=0.3), 
-                        A.JpegCompression(quality_lower=50, p=0.5)
+                        A.JpegCompression(quality_lower=50, p=0.3)
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
 
@@ -137,18 +141,14 @@ def load_model(type='efficientnet', num_classes = 21):
     elif type=='resnet100':
         model = models.resnet100(pretraind = True)
     elif type=='efficientnet':
-        model = EfficientNet.from_pretrained('efficientnet-b3')
+        model = EfficientNet.from_pretrained('efficientnet-b1')
     else:
         raise Exception("! Sorry, CNN_TYPE not recognized !")
         
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        model._fc = nn.Sequential(
-                        nn.Linear(num_ftrs, 256),
-                        nn.ReLU(),
-                        nn.Linear(256, num_classes)
-                        )
+        model._fc = nn.Linear(num_ftrs, num_classes)
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
@@ -158,8 +158,8 @@ def load_model(type='efficientnet', num_classes = 21):
         
 def train(opt):
 
-    # Data augmentation and normalization for training
-    # Just normalization for validation
+    # Data augmentation and normalization 
+
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),

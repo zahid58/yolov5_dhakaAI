@@ -4,7 +4,8 @@ import torch.optim as optim
 from torch.optim import lr_scheduler
 import numpy as np
 import torchvision
-from torchvision import datasets, models, transforms
+from torchvision import models, transforms
+from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
 import time
 import os
@@ -159,7 +160,7 @@ def train(opt):
     }
     
     data_dir = opt.data_dir
-    image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
+    image_datasets = {x: ImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     """
     num_data = len(image_data)

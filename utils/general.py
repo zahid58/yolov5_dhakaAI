@@ -884,6 +884,16 @@ def print_mutation(hyp, results, yaml_file='hyp_evolved.yaml', bucket=''):
 
     if bucket:
         os.system('gsutil cp evolve.txt %s gs://%s' % (yaml_file, bucket))  # upload
+  
+
+def imagenet_normalize(img_data):
+    mean_vec = np.array([0.485, 0.456, 0.406])
+    stddev_vec = np.array([0.229, 0.224, 0.225])
+    norm_img_data = np.zeros(img_data.shape).astype('float32')
+    for i in range(img_data.shape[0]):  
+         # for each pixel in each channel, divide the value by 255 to get value between [0, 1] and then normalize
+        norm_img_data[i,:,:] = (img_data[i,:,:]/255.0 - mean_vec[i]) / stddev_vec[i]
+    return norm_image_data
 
 
 def apply_classifier(x, model, img, im0):
@@ -911,8 +921,9 @@ def apply_classifier(x, model, img, im0):
                 # cv2.imwrite('test%i.jpg' % j, cutout)
 
                 im = im[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+                im = imagenet_normalize(im)   # comment
                 im = np.ascontiguousarray(im, dtype=np.float32)  # uint8 to float32
-                im /= 255.0  # 0 - 255 to 0.0 - 1.0
+                #im /= 255.0  # 0 - 255 to 0.0 - 1.0   # uncomment
                 ims.append(im)
 
             pred_cls2 = model(torch.Tensor(ims).to(d.device)).argmax(1)  # classifier prediction

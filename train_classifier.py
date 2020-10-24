@@ -154,14 +154,14 @@ def train(opt):
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomAffine(degrees=(-30, 30),translate=(0.25, 0.25),scale=(0.8, 1.5),resample=Image.BILINEAR),
-            transforms.Resize(224),
+            transforms.Resize((224,224)),
             transforms.RandomHorizontalFlip(p=0.5),
             albumen_augmentations(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(224),
+            transforms.Resize((224,224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),

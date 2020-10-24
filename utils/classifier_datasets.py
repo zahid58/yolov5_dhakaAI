@@ -83,7 +83,7 @@ class MyDatasetFolder(VisionDataset):
                  target_transform=None, is_valid_file=None):
         super(MyDatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
-        a, b = self._find_classes(root)
+                                            
         classes = ['truck', 'pickup', 'car', 'suv', 'three wheelers (CNG)', 'bus', 'van', 'ambulance', 'rickshaw', 'minivan', 'motorbike', 'bicycle', 'army vehicle', 'human hauler', 'taxi', 'wheelbarrow', 'auto rickshaw', 'minibus', 'scooter', 'policecar', 'garbagevan']
         class_to_idx = {'truck':0, 'pickup':1, 'car':2, 'suv':3, 'three wheelers (CNG)':4, 'bus':5, 'van':6, 'ambulance':7, 'rickshaw':8, 'minivan':9, 'motorbike':10, 'bicycle':11, 'army vehicle':12, 'human hauler':13, 'taxi':14, 'wheelbarrow':15, 'auto rickshaw':16, 'minibus':17, 'scooter':18, 'policecar':19, 'garbagevan':20}
         samples = make_dataset(self.root, class_to_idx, extensions, is_valid_file)

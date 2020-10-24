@@ -109,11 +109,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
 
 def albumen_augmentations():
     transforms = A.Compose([
-                        A.CLAHE(p=0.3),
-                        A.GaussNoise(p=0.4),
+                        A.CLAHE(p=0.4),
+                        A.GaussNoise(p=0.5),
                         A.GaussianBlur(blur_limit=(3,7), p=0.4),
                         A.MotionBlur(blur_limit=(3,7), p=0.4),
-                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.6),
+                        A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.7),
                         A.RandomFog(p=0.3),
                         A.RGBShift(p=0.3), 
                         A.JpegCompression(quality_lower=50, p=0.4)
@@ -195,9 +195,9 @@ def train(opt):
     
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.01, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.8)
-    exp_lr_scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer_ft, T_0 = 10, T_mult = 2, eta_min = 1e-5)
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.8)
+    # exp_lr_scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer_ft, T_0 = 10, T_mult = 2, eta_min = 1e-5)
     
     # train model
     train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)

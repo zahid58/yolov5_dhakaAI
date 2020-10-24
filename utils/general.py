@@ -893,7 +893,7 @@ def imagenet_normalize(img_data):
     for i in range(img_data.shape[0]):  
          # for each pixel in each channel, divide the value by 255 to get value between [0, 1] and then normalize
         norm_img_data[i,:,:] = (img_data[i,:,:]/255.0 - mean_vec[i]) / stddev_vec[i]
-    return norm_image_data
+    return norm_img_data
 
 
 def apply_classifier(x, model, img, im0):
@@ -927,7 +927,8 @@ def apply_classifier(x, model, img, im0):
                 ims.append(im)
 
             pred_cls2 = model(torch.Tensor(ims).to(d.device)).argmax(1)  # classifier prediction
-            x[i] = x[i][pred_cls1 == pred_cls2]  # retain matching class detections
+            #x[i] = x[i][pred_cls1 == pred_cls2]  # retain matching class detections
+            x[i][:,5]=pred_cls2
 
     return x
 

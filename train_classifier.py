@@ -5,7 +5,7 @@ from torch.optim import lr_scheduler
 import numpy as np
 import torchvision
 from torchvision import models, transforms
-from torchvision.datasets import ImageFolder
+from utils.classifier_datasets import MyImageFolder
 import matplotlib.pyplot as plt
 import time
 import os
@@ -130,14 +130,14 @@ def load_model(type='efficientnet', num_classes = 21):
     elif type=='resnet100':
         model = models.resnet100(pretraind = True)
     elif type=='efficientnet':
-        model = EfficientNet.from_pretrained('efficientnet-b3')
+        model = EfficientNet.from_pretrained('efficientnet-b0')
     else:
         raise Exception("! Sorry, CNN_TYPE not recognized !")
         
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        model._fc = nn.Sequential(nn.Linear(num_ftrs, 256), nn.ReLU(), nn.Linear(256, num_classes))
+        model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.ReLU(), nn.Linear(128, num_classes))
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
@@ -159,8 +159,7 @@ def train(opt):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
+            transforms.Resize(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -168,15 +167,13 @@ def train(opt):
     
     data_dir = opt.data_dir
     print('> loading data from',data_dir)
-    image_datasets = {x: ImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
-    traffics = {'truck':0, 'pickup':1, 'car':2, 'suv':3, 'three wheelers (CNG)':4, 'bus':5, 'van':6, 'ambulance':7, 'rickshaw':8, 'minivan':9, 'motorbike':10, 'bicycle':11, 'army vehicle':12, 'human hauler':13, 'taxi':14, 'wheelbarrow':15, 'auto rickshaw':16, 'minibus':17, 'scooter':18, 'policecar':19, 'garbagevan':20}
-    image_datasets['train'].class_to_idx = traffics
-    image_datasets['val'].class_to_idx = traffics
+    image_datasets = {x: MyImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     print('> num images in train and val folder:',dataset_sizes)
     class_names = image_datasets['train'].classes
     print('> classes :', class_names)
+    print('> class_to_idx :',image_datasets['train'].class_to_idx)
 
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,shuffle=True, num_workers=4) for x in ['train', 'val']}    
 
@@ -185,7 +182,7 @@ def train(opt):
 
     # load model
     model_ft = None
-    print('> loading {} model, number of classes is {}....'.format(opt.CNN_type,len(class_names)))
+    print('> loading {} model, number of classes is {}...'.format(opt.CNN_type,len(class_names)))
     model_ft = load_model(type = opt.CNN_type, num_classes = len(class_names))
 
     # compile model

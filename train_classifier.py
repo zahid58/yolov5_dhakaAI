@@ -192,8 +192,9 @@ def train(opt):
     
     model_ft = model_ft.to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.001, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=8, gamma=0.6)
+    optimizer_ft = optim.Adam(model_ft.parameters(), lr=0.01, amsgrad=True)    # optimizer_ft = optim.SGD(model_ft.parameters(), lr=0.001, momentum=0.9)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=10, gamma=0.8)
+    exp_lr_scheduler = lr_scheduler.CosineAnnealingWarmRestarts(optimizer_ft, T_0 = 10, T_mult = 2, eta_min = 1e-5)
     
     # train model
     train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)

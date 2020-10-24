@@ -6,6 +6,7 @@ import numpy as np
 import torchvision
 from torchvision import models, transforms
 from utils.classifier_datasets import MyImageFolder
+from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
 import time
 import os

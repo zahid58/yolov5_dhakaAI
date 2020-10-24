@@ -107,8 +107,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
 
 def albumen_augmentations():
     transforms = A.Compose([
-                        A.CLAHE(p=0.4),
-                        A.GaussNoise(p=0.5),
+                        A.CLAHE(p=0.3),
+                        A.GaussNoise(p=0.4),
                         A.GaussianBlur(blur_limit=(3,7), p=0.4),
                         A.MotionBlur(blur_limit=(3,7), p=0.4),
                         A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.6),
@@ -138,6 +138,7 @@ def load_model(type='efficientnet', num_classes = 21):
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
         model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.LeakyReLU(0.1), nn.Dropout(p=0.2), nn.Linear(128, num_classes))
+        #model._fc = nn.Linear(num_ftrs, num_classes)
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
@@ -151,9 +152,8 @@ def train(opt):
 
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomAffine(degrees=(-30, 30),translate=(0.25, 0.25),scale=(0.8, 1.5),resample=Image.BILINEAR),
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomRotation(degrees=(-50, 50)),
             albumen_augmentations(),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])

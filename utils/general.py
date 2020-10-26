@@ -903,11 +903,11 @@ def apply_classifier(x, model, img, im0):
         if d is not None and len(d):
             d = d.clone()
 
-            # Reshape and pad cutouts
-            b = xyxy2xywh(d[:, :4])  # boxes
-            b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # rectangle to square
-            b[:, 2:] = b[:, 2:] * 1.3 + 30  # pad
-            d[:, :4] = xywh2xyxy(b).long()
+            # NOT WORKING __ IGNORE... Reshape and pad cutouts
+            #b = xyxy2xywh(d[:, :4])  # boxes
+            #b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # rectangle to square
+            #b[:, 2:] = b[:, 2:] * 1.3 + 30  # pad
+            #d[:, :4] = xywh2xyxy(b).long()
 
             # Rescale boxes from img_size to im0 size
             scale_coords(img.shape[2:], d[:, :4], im0[i].shape)
@@ -927,8 +927,8 @@ def apply_classifier(x, model, img, im0):
                 ims.append(im)
 
             pred_cls2 = model(torch.Tensor(ims).to(d.device)).argmax(1)  # classifier prediction
-            #x[i] = x[i][pred_cls1 == pred_cls2]  # retain matching class detections
-            x[i][:,5]=pred_cls2
+            #x[i] = x[i][pred_cls1 == pred_cls2]  # retain boxes with matching YOLO and CNN labels only
+            x[i][:,5]=pred_cls2 # pass labels detected by CNN
 
     return x
 

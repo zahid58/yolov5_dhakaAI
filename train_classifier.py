@@ -176,8 +176,8 @@ def train(opt):
     data_dir = opt.data_dir
     print('> loading data from',data_dir)
 
-    train_image_dataset = MyImageFolder(os.path.join(data_dir, 'train'),data_transforms['train'])
-    val_image_dataset = MyImageFolder(os.path.join(data_dir, 'val'),data_transforms['val'])
+    train_image_dataset = MyImageFolder(os.path.join(data_dir, 'train'),data_transforms['train'],print_weights = True)
+    val_image_dataset = MyImageFolder(os.path.join(data_dir, 'val'),data_transforms['val'],print_weights=False)
     image_datasets = {'train':train_image_dataset,'val':val_image_dataset}
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}

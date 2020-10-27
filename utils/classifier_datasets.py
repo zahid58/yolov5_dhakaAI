@@ -1,7 +1,7 @@
 from torchvision.datasets.vision import VisionDataset
 
 from PIL import Image
-
+import torch
 import os
 import os.path
 
@@ -27,7 +27,8 @@ def is_image_file(filename):
     return has_file_allowed_extension(filename, IMG_EXTENSIONS)
 
 
-def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
+def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None, print_stat=True):
+    
     instances = []
     directory = os.path.expanduser(directory)
     both_none = extensions is None and is_valid_file is None
@@ -37,6 +38,9 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
     if extensions is not None:
         def is_valid_file(x):
             return has_file_allowed_extension(x, extensions)
+
+    count_dict = {i:0 for c,i in class_to_idx.items()}
+    
     for target_class in sorted(class_to_idx.keys()):
         class_index = class_to_idx[target_class]
         target_dir = os.path.join(directory, target_class)
@@ -47,8 +51,17 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
                 path = os.path.join(root, fname)
                 if is_valid_file(path):
                     item = path, class_index
+                    count_dict[class_index] += 1
                     instances.append(item)
-    return instances
+
+    class_count = [i for i in count_dict.values()]
+    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
+    if print_stat:
+        print("count_dict:",count_dict)
+        print("class_count:",class_count)
+        print("class_weights:",class_weights)
+
+    return instances, class_weights
 
 
 class MyDatasetFolder(VisionDataset):
@@ -86,7 +99,7 @@ class MyDatasetFolder(VisionDataset):
                                             
         classes = ['truck', 'pickup', 'car', 'suv', 'three wheelers (CNG)', 'bus', 'van', 'ambulance', 'rickshaw', 'minivan', 'motorbike', 'bicycle', 'army vehicle', 'human hauler', 'taxi', 'wheelbarrow', 'auto rickshaw', 'minibus', 'scooter', 'policecar', 'garbagevan']
         class_to_idx = {'truck':0, 'pickup':1, 'car':2, 'suv':3, 'three wheelers (CNG)':4, 'bus':5, 'van':6, 'ambulance':7, 'rickshaw':8, 'minivan':9, 'motorbike':10, 'bicycle':11, 'army vehicle':12, 'human hauler':13, 'taxi':14, 'wheelbarrow':15, 'auto rickshaw':16, 'minibus':17, 'scooter':18, 'policecar':19, 'garbagevan':20}
-        samples = make_dataset(self.root, class_to_idx, extensions, is_valid_file)
+        samples, class_weights = make_dataset(self.root, class_to_idx, extensions, is_valid_file, print_stat=True)
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:
@@ -99,6 +112,7 @@ class MyDatasetFolder(VisionDataset):
         self.classes = classes
         self.class_to_idx = class_to_idx
         self.samples = samples
+        self.class_weights = class_weights
         self.targets = [s[1] for s in samples]
 
     def _find_classes(self, dir):

@@ -113,28 +113,14 @@ def albumen_augmentations():
     transforms = A.Compose([
                         A.CLAHE(p=0.4),
                         A.GaussNoise(p=0.5),
-                        A.GaussianBlur(blur_limit=(3,7), p=0.4),
-                        A.MotionBlur(blur_limit=(3,7), p=0.4),
+                        A.GaussianBlur(blur_limit=(3,5), p=0.4),
+                        A.MotionBlur(blur_limit=(3,5), p=0.4),
                         A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.7),
                         A.RandomFog(p=0.3),
                         A.RGBShift(p=0.3), 
-                        A.JpegCompression(quality_lower=50, p=0.4)
+                        A.JpegCompression(quality_lower=60, p=0.4)
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
-
-
-def get_class_weights(dataset_obj,print_stat=False):
-
-    count_dict = {i:0 for c,i in dataset_obj.class_to_idx.items()}
-    for _,y in dataset_obj:
-        count_dict[y] += 1
-    class_count = [i for i in count_dict.values()]
-    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
-    if print_stat:
-        print("count_dict:",count_dict)
-        print("class_count:",class_count)
-        print("class_weights:",class_weights)
-    return class_weights
 
 
 def load_model(type='efficientnet', num_classes = 21):
@@ -170,7 +156,7 @@ def train(opt):
 
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomAffine(degrees=(-30, 30),translate=(0.25, 0.25),scale=(0.8, 1.5),resample=Image.BILINEAR),
+            transforms.RandomAffine(degrees=(-20, 20),translate=(0.1, 0.1),scale=(0.8, 1.2),resample=Image.BILINEAR),
             transforms.Resize((224,224)),
             transforms.RandomHorizontalFlip(p=0.5),
             albumen_augmentations(),
@@ -194,13 +180,15 @@ def train(opt):
     print('> classes :', class_names)
     print('> class_to_idx :',image_datasets['train'].class_to_idx)
 
-    class_weights = get_class_weights(image_datasets['train'], print_stat=True)
+    class_weights = image_datasets['train'].class_weights
     target_list = torch.tensor(image_datasets['train'].targets)
+    print('target_list:',target_list)
     class_weights_all = class_weights[target_list]
+    print('class_weights_all:',class_weights_all)
     weighted_sampler = WeightedRandomSampler(weights=class_weights_all,num_samples=len(class_weights_all),replacement=True)
 
-    train_loader = DataLoader(dataset=image_datasets['train'], shuffle=True, batch_size=opt.batch_size, sampler=weighted_sampler, num_worker = 4)
-    val_loader = DataLoader(dataset=image_datasets['val'],shuffle=True, batch_size=opt.batch_size, num_worker=4)
+    train_loader = DataLoader(dataset=image_datasets['train'], shuffle=False, batch_size=opt.batch_size, sampler=weighted_sampler, num_workers = 4)
+    val_loader = DataLoader(dataset=image_datasets['val'], shuffle=True, batch_size=opt.batch_size, num_workers = 4)
 
     dataloaders =  {'train':train_loader, 'val':val_loader}
 

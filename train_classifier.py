@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader, WeightedRandomSampler
 import numpy as np
 import torchvision
 from torchvision import models, transforms
@@ -108,6 +109,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
 
 
 def albumen_augmentations():
+
     transforms = A.Compose([
                         A.CLAHE(p=0.4),
                         A.GaussNoise(p=0.5),
@@ -119,6 +121,20 @@ def albumen_augmentations():
                         A.JpegCompression(quality_lower=50, p=0.4)
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
+
+
+def get_class_weights(dataset_obj,print_stat=False):
+
+    count_dict = {i:0 for c,i in dataset_obj.class_to_idx.items()}
+    for _,y in dataset_obj:
+        count_dict[y] += 1
+    class_count = [i for i in count_dict.values()]
+    class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
+    if print_stat:
+        print("count_dict:",count_dict)
+        print("class_count:",class_count)
+        print("class_weights:",class_weights)
+    return class_weights
 
 
 def load_model(type='efficientnet', num_classes = 21):
@@ -178,7 +194,15 @@ def train(opt):
     print('> classes :', class_names)
     print('> class_to_idx :',image_datasets['train'].class_to_idx)
 
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=opt.batch_size,shuffle=True, num_workers=4) for x in ['train', 'val']}    
+    class_weights = get_class_weights(image_datasets['train'], print_stat=True)
+    target_list = torch.tensor(image_datasets['train'].targets)
+    class_weights_all = class_weights[target_list]
+    weighted_sampler = WeightedRandomSampler(weights=class_weights_all,num_samples=len(class_weights_all),replacement=True)
+
+    train_loader = DataLoader(dataset=image_datasets['train'], shuffle=True, batch_size=opt.batch_size, sampler=weighted_sampler, num_worker = 4)
+    val_loader = DataLoader(dataset=image_datasets['val'],shuffle=True, batch_size=opt.batch_size, num_worker=4)
+
+    dataloaders =  {'train':train_loader, 'val':val_loader}
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print('> training on device:',device)

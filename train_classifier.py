@@ -108,19 +108,21 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs,dataloaders,d
     return
 
 
+
 def albumen_augmentations():
 
     transforms = A.Compose([
-                        A.CLAHE(p=0.4),
+                        A.CLAHE(p=0.5),
                         A.GaussNoise(p=0.5),
-                        A.GaussianBlur(blur_limit=(3,5), p=0.4),
-                        A.MotionBlur(blur_limit=(3,5), p=0.4),
+                        A.GaussianBlur(blur_limit=(3,7), p=0.4),
+                        A.MotionBlur(blur_limit=(3,7), p=0.4),
                         A.RandomBrightnessContrast(brightness_limit=0.6, contrast_limit=0.6, p=0.7),
                         A.RandomFog(p=0.3),
                         A.RGBShift(p=0.3), 
-                        A.JpegCompression(quality_lower=60, p=0.4)
+                        A.JpegCompression(quality_lower=50, p=0.6)
                       ])
     return  lambda  img:transforms(image=np.array(img))['image']
+
 
 
 def load_model(type='efficientnet', num_classes = 21):
@@ -141,14 +143,15 @@ def load_model(type='efficientnet', num_classes = 21):
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.LeakyReLU(0.1), nn.Dropout(p=0.2), nn.Linear(128, num_classes))
-        #model._fc = nn.Linear(num_ftrs, num_classes)
+        #model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.LeakyReLU(0.1), nn.Dropout(p=0.2), nn.Linear(128, num_classes))
+        model._fc = nn.Linear(num_ftrs, num_classes)
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
 
     return model
         
+
         
 def train(opt):
 
@@ -156,7 +159,7 @@ def train(opt):
 
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomAffine(degrees=(-20, 20),translate=(0.1, 0.1),scale=(0.8, 1.2),resample=Image.BILINEAR),
+            transforms.RandomAffine(degrees=(-40, 40),translate=(0.2, 0.2),scale=(0.8, 1.4),resample=Image.BILINEAR),
             transforms.Resize((224,224)),
             transforms.RandomHorizontalFlip(p=0.5),
             albumen_augmentations(),
@@ -172,7 +175,10 @@ def train(opt):
     
     data_dir = opt.data_dir
     print('> loading data from',data_dir)
-    image_datasets = {x: MyImageFolder(os.path.join(data_dir, x),data_transforms[x]) for x in ['train','val']}
+
+    train_image_dataset = MyImageFolder(os.path.join(data_dir, 'train'),data_transforms['train'])
+    val_image_dataset = MyImageFolder(os.path.join(data_dir, 'val'),data_transforms['val'])
+    image_datasets = {'train':train_image_dataset,'val':val_image_dataset}
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     print('> num images in train and val folder:',dataset_sizes)
@@ -214,7 +220,6 @@ def train(opt):
     # train model
     train_model(model_ft, criterion, optimizer_ft, exp_lr_scheduler,opt.epochs,dataloaders,device,dataset_sizes)
 
-    
     
 
 if __name__ == '__main__':

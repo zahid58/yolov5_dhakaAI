@@ -1,5 +1,4 @@
 from torchvision.datasets.vision import VisionDataset
-
 from PIL import Image
 import torch
 import os
@@ -27,7 +26,7 @@ def is_image_file(filename):
     return has_file_allowed_extension(filename, IMG_EXTENSIONS)
 
 
-def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None, print_stat=True):
+def make_dataset(directory, class_to_idx, extensions = None, is_valid_file = None, print_weights = False):
     
     instances = []
     directory = os.path.expanduser(directory)
@@ -35,9 +34,10 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None, p
     both_something = extensions is not None and is_valid_file is not None
     if both_none or both_something:
         raise ValueError("Both extensions and is_valid_file cannot be None or not None at the same time")
+    
     if extensions is not None:
         def is_valid_file(x):
-            return has_file_allowed_extension(x, extensions)
+                return has_file_allowed_extension(x, extensions)
 
     count_dict = {i:0 for c,i in class_to_idx.items()}
     
@@ -54,9 +54,13 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None, p
                     count_dict[class_index] += 1
                     instances.append(item)
 
+    for key, val in count_dict.items():
+        if val < 500:
+            count_dict[key] = 500
+
     class_count = [i for i in count_dict.values()]
     class_weights = 1./torch.tensor(class_count, dtype=torch.float) 
-    if print_stat:
+    if print_weights:
         print("count_dict:",count_dict)
         print("class_count:",class_count)
         print("class_weights:",class_weights)
@@ -93,13 +97,13 @@ class MyDatasetFolder(VisionDataset):
     """
 
     def __init__(self, root, loader, extensions=None, transform=None,
-                 target_transform=None, is_valid_file=None):
+                 target_transform=None, is_valid_file=None,print_weights=False):
         super(MyDatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
                                             
         classes = ['truck', 'pickup', 'car', 'suv', 'three wheelers (CNG)', 'bus', 'van', 'ambulance', 'rickshaw', 'minivan', 'motorbike', 'bicycle', 'army vehicle', 'human hauler', 'taxi', 'wheelbarrow', 'auto rickshaw', 'minibus', 'scooter', 'policecar', 'garbagevan']
         class_to_idx = {'truck':0, 'pickup':1, 'car':2, 'suv':3, 'three wheelers (CNG)':4, 'bus':5, 'van':6, 'ambulance':7, 'rickshaw':8, 'minivan':9, 'motorbike':10, 'bicycle':11, 'army vehicle':12, 'human hauler':13, 'taxi':14, 'wheelbarrow':15, 'auto rickshaw':16, 'minibus':17, 'scooter':18, 'policecar':19, 'garbagevan':20}
-        samples, class_weights = make_dataset(self.root, class_to_idx, extensions, is_valid_file, print_stat=True)
+        samples, class_weights = make_dataset(self.root, class_to_idx, extensions, is_valid_file, print_weights=print_weights)
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:
@@ -201,9 +205,9 @@ class MyImageFolder(MyDatasetFolder):
     """
 
     def __init__(self, root, transform=None, target_transform=None,
-                 loader=default_loader, is_valid_file=None):
+                 loader=default_loader, is_valid_file=None,print_weights=False):
         super(MyImageFolder, self).__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
                                           transform=transform,
                                           target_transform=target_transform,
-                                          is_valid_file=is_valid_file)
+                                          is_valid_file=is_valid_file,print_weights=print_weights)
         self.imgs = self.samples

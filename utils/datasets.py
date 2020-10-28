@@ -953,13 +953,13 @@ class AlbumenAugment(object):
     """Performs BBox Independent Augmentations from Albumentations library"""
     def __call__(self, img):        
         transform = A.Compose([
-                                A.GaussNoise(p=0.6),
+                                A.GaussNoise(p=0.7),
                                 A.GaussianBlur(blur_limit=(3,7), p=0.4),
-                                A.MotionBlur(blur_limit=(3,7), p=0.4),
+                                A.MotionBlur(blur_limit=(3,7), p=0.5),
                                 A.RandomBrightnessContrast(brightness_limit=0.5, contrast_limit=0.5, p=0.8),
                                 A.RandomFog(p=0.3),
-                                A.RGBShift(p=0.3), 
-                                A.JpegCompression(quality_lower=50, p=0.7)
+                                A.RGBShift(p=0.4), 
+                                A.JpegCompression(quality_lower=40, p=0.7)
                             ])
         img = transform(image=img)['image']                       
         return img

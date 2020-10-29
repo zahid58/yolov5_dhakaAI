@@ -422,11 +422,10 @@ if __name__ == '__main__':
     # Resume
     if opt.resume:  # resume an interrupted run
         ckpt = opt.resume if isinstance(opt.resume, str) else get_latest_run()  # specified or most recent path
-        log_dir = Path(ckpt).parent.parent  # runs/exp0
         assert os.path.isfile(ckpt), 'ERROR: --resume checkpoint does not exist'
-        with open(log_dir / 'opt.yaml') as f:
-            opt = argparse.Namespace(**yaml.load(f, Loader=yaml.FullLoader))  # replace
-        opt.cfg, opt.weights, opt.resume = '', ckpt, True
+        opt.cfg, opt.weights, opt.resume, opt.hyp, opt.data = '', ckpt, True, check_file(opt.hyp), check_file(opt.data)
+        opt.img_size.extend([opt.img_size[-1]] * (2 - len(opt.img_size)))  # extend to 2 sizes (train, test)
+        log_dir = increment_dir(Path(opt.logdir) / 'exp', opt.name)  # runs/exp1
         logger.info('Resuming training from %s' % ckpt)
 
     else:

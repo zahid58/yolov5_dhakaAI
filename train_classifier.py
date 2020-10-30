@@ -143,8 +143,8 @@ def load_model(type='efficientnet', num_classes = 21):
     # change classifier
     if type == 'efficientnet':
         num_ftrs = model._fc.in_features
-        #model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.LeakyReLU(0.1), nn.Dropout(p=0.2), nn.Linear(128, num_classes))
-        model._fc = nn.Linear(num_ftrs, num_classes)
+        model._fc = nn.Sequential(nn.Linear(num_ftrs, 128), nn.LeakyReLU(0.1), nn.Dropout(p=0.2), nn.Linear(128, num_classes))
+        #model._fc = nn.Linear(num_ftrs, num_classes)
     else:
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)

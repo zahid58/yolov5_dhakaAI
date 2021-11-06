@@ -8,7 +8,7 @@
 
 We modified the implementations for participating in Dhaka AI Traffic Vehicle Detection Challenge 2020.
 
-During the course of competitions, we tried Yolov3, Yolov5, Hybrid Models such as Yolov5+ResNet. We also experimented with Hierarchical models (where we similar vehicles in one category; after detecting the general class of vehicle, we used another yolo for more finer classification)
+During the course of competitions, we tried Yolov3, Yolov5, Hybrid Models such as Yolov5+ResNet. We also experimented with Hierarchical models (where we group similar vehicles in one category; after detecting the general class of vehicle with one model, we used another model for more finer classification)
 
 The repository is no longer maintained.
 

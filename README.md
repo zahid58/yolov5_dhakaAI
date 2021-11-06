@@ -1,4 +1,4 @@
-#Dhaka AI traffic detection challenge using Yolo and other models
+# Dhaka AI traffic detection challenge using Yolo and other models
 
 ### by IUT_CV_LAB
 
